@@ -3,6 +3,7 @@ import React from 'react';
 const Bar = ({name, value}) => {
     return (
         <div>
+            <p>{value}</p>
             <div style={{
                 backgroundColor: "grey",
                 width: "50px",
