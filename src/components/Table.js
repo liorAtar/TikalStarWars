@@ -138,7 +138,9 @@ const Table = () => {
                         </tr>
                         <tr>
                             <td>
-                                {Object.entries(vehicle.planets)}
+                                {Object.entries(vehicle.planets).map(([key, value]) => 
+                                    <p key={key}>{key} {value}</p>
+                                )}
                             </td>
                         </tr>
                         <tr>
