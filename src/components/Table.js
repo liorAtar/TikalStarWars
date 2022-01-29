@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
+import { tab } from '@testing-library/user-event/dist/tab';
 
 const ROOT = "https://swapi.py4e.com/api/";
 // Adding docs(documentation string) to everything
@@ -11,11 +12,24 @@ const ROOT = "https://swapi.py4e.com/api/";
 const Table = () => {
     const [parsedVehicles, setParsedVehicles] = useState([]);
     const [vehiclesWithHighestSum, setVehiclesWithHighestSum] = useState([]);
-
+    const [isFinished, setIsFinished] = useState(false);
+    
     useEffect(async () => {
-        await GetVehicles();
-        GetVehicleWithHighestSum();
-    }, [])
+        if (parsedVehicles.length === 0) {
+            await GetVehicles();
+        }
+
+        if (isFinished) {
+            GetVehicleWithHighestSum();
+        }
+
+        console.log("parsedVehicles", parsedVehicles);
+        console.log("vehiclesWithHighestSum", vehiclesWithHighestSum);
+    }, [isFinished])
+
+    // const Foo = async () => {
+    //     await GetVehicles();
+    // }
 
     /**
      * Get all the vehicles
@@ -23,12 +37,14 @@ const Table = () => {
     const GetVehicles = async () => {
         var resVehicles = await axios.get(`${ROOT}vehicles`);
 
-        ParseVehicles(resVehicles.data.results);
+        await ParseVehicles(resVehicles.data.results);
 
         while (resVehicles.data.next !== null) {
             resVehicles = await axios.get(resVehicles.data.next);
             await ParseVehicles(resVehicles.data.results);
         }
+
+        setIsFinished(true);
     }
 
     const ParseVehicles = async (vehicles) => {
@@ -37,6 +53,9 @@ const Table = () => {
                 var pilotsUrl = vehicle.pilots;
                 const [pilots, planets] = await ParsePilots(pilotsUrl);
 
+                // console.log("pilots", pilots)
+                // console.log("planets", planets)
+
                 if (pilots.length > 0) {
                     var parsedVehicle = {
                         "name": vehicle.name,
@@ -44,8 +63,9 @@ const Table = () => {
                         "planets": planets,
                         "totalPopulation": SumPopulation(planets)
                     };
-                    parsedVehicles.push(parsedVehicle);
-                    // setParsedVehicles(prevValue => [...prevValue, parsedVehicle])
+                    // console.log(parsedVehicle);
+                    // parsedVehicles.push(parsedVehicle);
+                    setParsedVehicles(prevValue => [...prevValue, parsedVehicle]);
                 }
             }
         }
@@ -55,6 +75,7 @@ const Table = () => {
         var pilots = [];
         var planets = {};
 
+        // TODO: check foreach
         for (const pilotUrl of pilotsUrl) {
             var resPilot = await axios.get(pilotUrl);
             var resPlanet = await axios.get(resPilot.data.homeworld);
@@ -83,26 +104,51 @@ const Table = () => {
     const GetVehicleWithHighestSum = () => {
         var highestSum = 0;
         // var vehiclesWithHighestSum = [];
+        console.log("parsedVehicles in high", parsedVehicles);
+
 
         parsedVehicles.forEach(vehicle => {
             if (vehicle["totalPopulation"] > highestSum) {
                 highestSum = vehicle["totalPopulation"];
             }
         })
+
+        console.log("highestSum", highestSum);
         
         parsedVehicles.forEach(vehicle => {
             if (vehicle["totalPopulation"] === highestSum) {
-                // setVehiclesWithHighestSum(prevValue => [...prevValue, vehicle]);
-                vehiclesWithHighestSum.push(vehicle);
+                console.log("enter")
+                setVehiclesWithHighestSum(prevValue => [...prevValue, vehicle]);
+                // vehiclesWithHighestSum.push(vehicle);
             }
         })
 
-        console.log("vehiclesWithHighestSum", vehiclesWithHighestSum)
+        // console.log("vehiclesWithHighestSum", vehiclesWithHighestSum)
     }
 
     return (
         <div>
-            
+            {vehiclesWithHighestSum.map(vehicle =>
+                <table key={vehicle.name}>
+                    <tbody>
+                        <tr>
+                            <td>
+                                {vehicle.name}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                {Object.entries(vehicle.planets)}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                {vehicle.pilots}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 };
