@@ -5,7 +5,7 @@ import axios from 'axios';
 import './App.css';
 import Table from './components/Table';
 import BarChart from './components/BarChart';
-import {ROOT} from './Consts';
+import { ROOT } from './Consts';
 
 // Adding docs(documentation string) to everything
 // Get the vehicle with the highest sum of population
@@ -57,7 +57,7 @@ function App() {
             "planets": planets,
             "totalPopulation": SumPopulation(planets)
           };
-          
+
           setParsedVehicles(prevValue => [...prevValue, parsedVehicle]);
         }
       }
